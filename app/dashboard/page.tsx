@@ -245,10 +245,10 @@ export default function DashboardPage() {
                             </div>
                             <div>
                               <p className="font-medium text-foreground">{category.name}</p>
-                              <p className="text-xs text-muted-foreground">{category.count} expenses</p>
+                              <p className="text-xs text-muted-foreground">{category.count || 0} expenses</p>
                             </div>
                           </div>
-                          <p className="font-semibold text-foreground">₹{category.total.toLocaleString()}</p>
+                          <p className="font-semibold text-foreground">₹{category.total?.toLocaleString() || "0"}</p>
                         </div>
                       ))}
                     {dashboardData.categoryTotals.length === 0 && (

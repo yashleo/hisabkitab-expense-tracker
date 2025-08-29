@@ -71,11 +71,11 @@ export function CategoryChart({ data, loading }: CategoryChartProps) {
                         </div>
                         <div>
                           <p className="font-medium text-foreground">{category.name}</p>
-                          <p className="text-xs text-muted-foreground">{category.count} expenses</p>
+                          <p className="text-xs text-muted-foreground">{category.count || 0} expenses</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-foreground">₹{category.total.toLocaleString()}</p>
+                        <p className="font-semibold text-foreground">₹{category.total?.toLocaleString() || "0"}</p>
                         <p className="text-xs text-muted-foreground">{percentage.toFixed(1)}%</p>
                       </div>
                     </div>
