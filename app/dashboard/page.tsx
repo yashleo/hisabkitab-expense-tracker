@@ -28,8 +28,18 @@ export default function DashboardPage() {
   } = useExpenses()
   const { categories } = useCategories()
 
-  const [categoryData, setCategoryData] = useState<any[]>([])
-  const [monthlyData, setMonthlyData] = useState<any[]>([])
+  const [categoryData, setCategoryData] = useState<Array<{
+    id: string;
+    name: string;
+    color: string;
+    total: number;
+    count: number;
+  }>>([])
+  const [monthlyData, setMonthlyData] = useState<Array<{
+    month: string;
+    total: number;
+    count: number;
+  }>>([])
 
   // Load analytics data
   useEffect(() => {

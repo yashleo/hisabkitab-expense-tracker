@@ -6,7 +6,6 @@ import { PieChart } from "lucide-react"
 interface CategoryData {
   id: string
   name: string
-  icon: string
   color: string
   total: number
   count: number

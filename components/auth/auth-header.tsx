@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function AuthHeader() {
-  const { user, logout } = useAuthContext()
+  const { user, signOut } = useAuthContext()
   const router = useRouter()
 
   const handleLogout = async () => {
-    await logout()
+    await signOut()
     router.push("/")
   }
 
