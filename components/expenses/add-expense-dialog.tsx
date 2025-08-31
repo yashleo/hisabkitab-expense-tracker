@@ -31,20 +31,22 @@ export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpense
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     amount: "",
-    date: new Date().toISOString().split("T")[0],
+    date: "",
     category: "",
     location: "",
     description: "",
   })
 
   useEffect(() => {
-    if (defaultDate) {
+    if (open) {
+      // Always set to current date when dialog opens, unless defaultDate is provided
+      const dateToUse = defaultDate || new Date()
       setFormData((prev) => ({
         ...prev,
-        date: defaultDate.toISOString().split("T")[0],
+        date: dateToUse.toISOString().split("T")[0],
       }))
     }
-  }, [defaultDate])
+  }, [open, defaultDate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
