@@ -77,7 +77,14 @@ export function useExpenses() {
         throw new Error(createError || "Failed to add expense")
       }
 
+      // Optimistically update the state first
       setExpenses(prev => [expense, ...prev])
+      
+      // Also refresh the expenses from the server to ensure consistency
+      setTimeout(() => {
+        loadExpenses()
+      }, 100)
+      
       return expense
     } catch (err: any) {
       console.error("Error adding expense:", err)
@@ -147,13 +154,50 @@ export function useExpenses() {
     if (!user) throw new Error("User not authenticated")
 
     try {
-      const { error: deleteError } = await firestoreService.deleteExpense(id)
-      
-      if (deleteError) {
-        throw new Error(deleteError)
+      // Find the expense to check if it was deducted from wallet
+      const expenseToDelete = expenses.find(expense => expense.id === id)
+      if (!expenseToDelete) {
+        throw new Error("Expense not found")
       }
 
+      // If the expense was deducted from wallet, we need to refund it
+      if (expenseToDelete.deductFromWallet) {
+        console.log(`Refunding ₹${expenseToDelete.amount} to wallet for deleted expense`)
+        
+        // Get user's wallet
+        const { wallet, error: walletError } = await firestoreService.getWallet(user.id)
+        if (walletError || !wallet) {
+          throw new Error("Wallet not found. Cannot process refund.")
+        }
+
+        // Use the wallet refund method
+        const { error: deleteError } = await firestoreService.deleteExpenseWithWalletRefund(
+          id, 
+          wallet.id, 
+          expenseToDelete.amount
+        )
+        
+        if (deleteError) {
+          throw new Error(deleteError)
+        }
+        
+        console.log(`Successfully refunded ₹${expenseToDelete.amount} to wallet`)
+      } else {
+        // Use regular delete method
+        const { error: deleteError } = await firestoreService.deleteExpense(id)
+        
+        if (deleteError) {
+          throw new Error(deleteError)
+        }
+      }
+
+      // Update local state immediately
       setExpenses(prev => prev.filter(expense => expense.id !== id))
+      
+      // Also refresh from server to ensure consistency
+      setTimeout(() => {
+        loadExpenses()
+      }, 100)
     } catch (err: any) {
       console.error("Error deleting expense:", err)
       throw new Error(err.message || "Failed to delete expense")

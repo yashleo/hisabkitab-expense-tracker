@@ -12,11 +12,22 @@ import { ExpenseCard } from "@/components/expenses/expense-card"
 import { Plus, ChevronLeft, ChevronRight, Calendar } from "lucide-react"
 
 export default function ExpensesPage() {
-  const { expenses, loading } = useExpenses()
+  const { expenses, loading, refetch } = useExpenses()
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [editingExpense, setEditingExpense] = useState<any>(null)
+
+  // Auto-refresh when dialog closes
+  const handleDialogChange = (open: boolean) => {
+    setShowAddDialog(open)
+    if (!open) {
+      // Refresh expenses when dialog closes
+      setTimeout(() => {
+        refetch()
+      }, 100)
+    }
+  }
 
   const formatDate = (date: Date) => {
     // Use local date components to avoid timezone issues
@@ -59,7 +70,7 @@ export default function ExpensesPage() {
   }
 
   const getExpensesForDate = (date: Date) => {
-    return expenses.filter((expense) => {
+    const filtered = expenses.filter((expense) => {
       // Handle both Date objects and Firestore Timestamp objects
       let expenseDate: Date
       if (expense.date instanceof Date) {
@@ -72,8 +83,22 @@ export default function ExpensesPage() {
         expenseDate = new Date(expense.date)
       }
       
-      return isSameDay(expenseDate, date)
+      const matches = isSameDay(expenseDate, date)
+      
+      // Debug logging (remove in production)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Date comparison:', {
+          expenseDate: expenseDate.toISOString().split('T')[0],
+          selectedDate: date.toISOString().split('T')[0],
+          matches,
+          expenseId: expense.id
+        })
+      }
+      
+      return matches
     })
+    
+    return filtered
   }
 
   const getTotalForDate = (date: Date) => {
@@ -243,6 +268,12 @@ export default function ExpensesPage() {
                         key={expense.id}
                         expense={expense}
                         onEdit={() => setEditingExpense(expense)}
+                        onDelete={() => {
+                          // Refresh expenses after deletion
+                          setTimeout(() => {
+                            refetch()
+                          }, 100)
+                        }}
                         viewMode="list"
                       />
                     ))}
@@ -253,7 +284,7 @@ export default function ExpensesPage() {
           </div>
         </div>
 
-        <AddExpenseDialog open={showAddDialog} onOpenChange={setShowAddDialog} defaultDate={selectedDate} />
+        <AddExpenseDialog open={showAddDialog} onOpenChange={handleDialogChange} defaultDate={selectedDate} />
 
         {editingExpense && (
           <EditExpenseDialog

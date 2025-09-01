@@ -121,3 +121,248 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Enhanced Bold and Glowy Text Cursor (Caret) Styles */
+@layer utilities {
+  /* Method 1: Try the new caret-shape property for supported browsers */
+  input,
+  textarea,
+  [contenteditable="true"] {
+    caret-color: #be123c !important; /* Rose color for light mode */
+    caret-shape: block; /* Thicker caret for modern browsers */
+    color: #475569 !important; /* Light mode text color */
+  }
+  
+  /* Method 2: Text shadow technique to simulate thickness */
+  input:focus,
+  textarea:focus,
+  [contenteditable="true"]:focus {
+    caret-color: #be123c !important;
+    color: #475569 !important; /* Maintain light mode text color on focus */
+    /* Create illusion of thicker caret with multiple shadows */
+    text-shadow: 
+      0.5px 0 0 #be123c,
+      -0.5px 0 0 #be123c,
+      0 0.5px 0 #be123c,
+      0 -0.5px 0 #be123c,
+      1px 0 0 rgba(190, 18, 60, 0.3),
+      -1px 0 0 rgba(190, 18, 60, 0.3);
+    
+    /* Enhanced glow effect */
+    outline: 2px solid rgba(190, 18, 60, 0.2);
+    outline-offset: 1px;
+    box-shadow: 
+      0 0 0 3px rgba(190, 18, 60, 0.1),
+      0 0 15px rgba(190, 18, 60, 0.2),
+      inset 0 0 0 1px rgba(190, 18, 60, 0.1);
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* Method 3: Font styling to make cursor area more prominent */
+  input,
+  textarea {
+    font-weight: 500; /* Slightly bolder text makes caret appear thicker */
+    letter-spacing: 0.5px; /* More space makes caret more visible */
+  }
+  
+  /* Enhanced animation for focused inputs */
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  input[type="search"]:focus,
+  input[type="number"]:focus {
+    caret-color: #be123c !important;
+    animation: caret-pulse 1.8s ease-in-out infinite;
+  }
+  
+  @keyframes caret-pulse {
+    0% { 
+      caret-color: #be123c;
+      filter: brightness(1);
+    }
+    50% { 
+      caret-color: rgba(190, 18, 60, 0.8);
+      filter: brightness(1.2) drop-shadow(0 0 2px #be123c);
+    }
+    100% { 
+      caret-color: #be123c;
+      filter: brightness(1);
+    }
+  }
+  
+  /* Dark theme with Spotify green */
+  .dark input,
+  .dark textarea,
+  .dark [contenteditable="true"] {
+    caret-color: #1db954 !important; /* Spotify green for dark mode */
+    caret-shape: block;
+    color: #1db954 !important; /* Green text color for dark mode */
+  }
+  
+  .dark input:focus,
+  .dark textarea:focus,
+  .dark [contenteditable="true"]:focus {
+    caret-color: #1db954 !important;
+    color: #1db954 !important; /* Maintain green text color on focus */
+    text-shadow: 
+      0.5px 0 0 #1db954,
+      -0.5px 0 0 #1db954,
+      0 0.5px 0 #1db954,
+      0 -0.5px 0 #1db954,
+      1px 0 0 rgba(29, 185, 84, 0.3),
+      -1px 0 0 rgba(29, 185, 84, 0.3);
+    outline: 2px solid rgba(29, 185, 84, 0.2);
+    box-shadow: 
+      0 0 0 3px rgba(29, 185, 84, 0.1),
+      0 0 15px rgba(29, 185, 84, 0.2),
+      inset 0 0 0 1px rgba(29, 185, 84, 0.1);
+  }
+  
+  /* Placeholder text styling */
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(71, 85, 105, 0.6) !important; /* Light mode placeholder */
+  }
+  
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: rgba(230, 237, 243, 0.6) !important; /* Dark mode placeholder */
+  }
+  
+  /* Simulate a thicker, glowing caret using CSS animations */
+  .enhanced-caret {
+    position: relative;
+    overflow: visible;
+  }
+  
+  .enhanced-caret::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      hsl(var(--primary)) 20%,
+      hsl(var(--primary)) 80%,
+      transparent 100%
+    );
+    border-radius: 2px;
+    box-shadow: 
+      0 0 4px hsl(var(--primary) / 0.6),
+      0 0 8px hsl(var(--primary) / 0.3),
+      0 0 12px hsl(var(--primary) / 0.2);
+    animation: caret-blink 1.2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  @keyframes caret-blink {
+    0%, 45% { 
+      opacity: 1; 
+      transform: scaleY(1);
+    }
+    50%, 95% { 
+      opacity: 0.3; 
+      transform: scaleY(0.8);
+    }
+    100% { 
+      opacity: 1; 
+      transform: scaleY(1);
+    }
+  }
+  
+  /* Theme-aware caret colors for dark mode */
+  .dark input:focus,
+  .dark textarea:focus,
+  .dark [contenteditable="true"]:focus {
+    caret-color: hsl(var(--primary));
+    box-shadow: 
+      0 0 0 1px hsl(var(--primary) / 0.3),
+      0 0 12px hsl(var(--primary) / 0.2),
+      inset 0 0 0 1px hsl(var(--primary) / 0.1);
+  }
+  
+  /* Enhanced text selection to complement the glowing caret */
+  ::selection {
+    background-color: hsl(var(--primary) / 0.15);
+    color: hsl(var(--foreground));
+  }
+  
+  .dark ::selection {
+    background-color: hsl(var(--primary) / 0.25);
+    color: hsl(var(--foreground));
+  }
+  
+  /* Additional caret enhancement for specific input types */
+  input[type="search"]:focus {
+    caret-color: hsl(var(--primary));
+  }
+  
+  /* Ensure caret is visible in all states */
+  input:not(:placeholder-shown),
+  textarea:not(:placeholder-shown) {
+    caret-color: hsl(var(--primary) / 0.8);
+  }
+}
+
+/* Enhanced Caret Styling - Theme-aware with increased width */
+* {
+  caret-color: transparent; /* Reset default */
+}
+
+input, textarea, [contenteditable="true"] {
+  caret-color: hsl(var(--primary)) !important;
+  /* Simulate thicker caret with text-shadow */
+  text-shadow: 
+    1px 0 0 hsl(var(--primary)),
+    -1px 0 0 hsl(var(--primary)),
+    0 1px 0 hsl(var(--primary)),
+    0 -1px 0 hsl(var(--primary));
+}
+
+input:focus, textarea:focus, [contenteditable="true"]:focus {
+  caret-color: hsl(var(--primary)) !important;
+  /* Enhanced glow effect matching theme */
+  box-shadow: 
+    0 0 0 2px hsl(var(--primary) / 0.2),
+    0 0 8px hsl(var(--primary) / 0.15),
+    0 0 16px hsl(var(--primary) / 0.1),
+    inset 0 0 0 1px hsl(var(--primary) / 0.1);
+  transition: all 0.3s ease-in-out;
+  /* Animated caret effect */
+  animation: caret-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes caret-glow {
+  0% { 
+    caret-color: hsl(var(--primary));
+  }
+  100% { 
+    caret-color: hsl(var(--primary) / 0.7);
+  }
+}
+
+/* Dark theme specific adjustments */
+.dark input:focus, 
+.dark textarea:focus, 
+.dark [contenteditable="true"]:focus {
+  box-shadow: 
+    0 0 0 2px hsl(var(--primary) / 0.3),
+    0 0 12px hsl(var(--primary) / 0.2),
+    0 0 20px hsl(var(--primary) / 0.1),
+    inset 0 0 0 1px hsl(var(--primary) / 0.15);
+}
+
+/* Light theme specific adjustments */
+.light input:focus, 
+.light textarea:focus, 
+.light [contenteditable="true"]:focus {
+  box-shadow: 
+    0 0 0 2px hsl(var(--primary) / 0.15),
+    0 0 8px hsl(var(--primary) / 0.1),
+    0 0 16px hsl(var(--primary) / 0.05),
+    inset 0 0 0 1px hsl(var(--primary) / 0.08);
+}

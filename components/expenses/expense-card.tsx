@@ -22,10 +22,11 @@ import {
 interface ExpenseCardProps {
   expense: Expense
   onEdit: () => void
+  onDelete?: () => void // Add callback for after deletion
   viewMode: "grid" | "list"
 }
 
-export function ExpenseCard({ expense, onEdit, viewMode }: ExpenseCardProps) {
+export function ExpenseCard({ expense, onEdit, onDelete, viewMode }: ExpenseCardProps) {
   const { deleteExpense } = useExpenses()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -39,9 +40,20 @@ export function ExpenseCard({ expense, onEdit, viewMode }: ExpenseCardProps) {
 
   const handleDelete = async () => {
     setDeleting(true)
-    await deleteExpense(expense.id)
-    setDeleting(false)
-    setShowDeleteDialog(false)
+    try {
+      await deleteExpense(expense.id)
+      setShowDeleteDialog(false)
+      
+      // Call the optional callback if provided
+      if (onDelete) {
+        onDelete()
+      }
+    } catch (error: any) {
+      console.error("Error deleting expense:", error)
+      alert(error.message || "Failed to delete expense")
+    } finally {
+      setDeleting(false)
+    }
   }
 
   if (viewMode === "list") {
@@ -111,6 +123,13 @@ export function ExpenseCard({ expense, onEdit, viewMode }: ExpenseCardProps) {
               <AlertDialogTitle>Delete Expense</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to delete this expense? This action cannot be undone.
+                {expense.deductFromWallet && (
+                  <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
+                    <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                      💰 ₹{expense.amount.toLocaleString()} will be refunded to your wallet
+                    </p>
+                  </div>
+                )}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -187,6 +206,13 @@ export function ExpenseCard({ expense, onEdit, viewMode }: ExpenseCardProps) {
             <AlertDialogTitle>Delete Expense</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this expense? This action cannot be undone.
+              {expense.deductFromWallet && (
+                <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
+                  <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                    💰 ₹{expense.amount.toLocaleString()} will be refunded to your wallet
+                  </p>
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -230,6 +230,49 @@ export class FirestoreService {
         }
     }
 
+    async deleteExpenseWithWalletRefund(
+        expenseId: string, 
+        walletId: string, 
+        refundAmount: number
+    ): Promise<{ error: string | null }> {
+        try {
+            const db = await this.getDb()
+            const { doc, deleteDoc, updateDoc, increment, runTransaction } = await import("firebase/firestore")
+
+            // Use a transaction to ensure both operations succeed or fail together
+            await runTransaction(db, async (transaction) => {
+                const expenseRef = doc(db, "expenses", expenseId)
+                const walletRef = doc(db, "wallets", walletId)
+
+                // First verify the expense exists
+                const expenseSnap = await transaction.get(expenseRef)
+                if (!expenseSnap.exists()) {
+                    throw new Error("Expense not found")
+                }
+
+                // Verify the wallet exists
+                const walletSnap = await transaction.get(walletRef)
+                if (!walletSnap.exists()) {
+                    throw new Error("Wallet not found")
+                }
+
+                // Delete the expense
+                transaction.delete(expenseRef)
+
+                // Refund the amount to wallet
+                transaction.update(walletRef, {
+                    balance: increment(refundAmount),
+                    updatedAt: new Date()
+                })
+            })
+
+            return { error: null }
+        } catch (error: any) {
+            console.error("Error deleting expense with wallet refund:", error)
+            return { error: error.message }
+        }
+    }
+
     // Category operations
     async getUserCategories(userId: string): Promise<{ categories: Category[]; error: string | null }> {
         try {
