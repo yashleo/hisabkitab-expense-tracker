@@ -28,18 +28,8 @@ export default function DashboardPage() {
   } = useExpenses()
   const { categories } = useCategories()
 
-  const [categoryData, setCategoryData] = useState<Array<{
-    id: string;
-    name: string;
-    color: string;
-    total: number;
-    count: number;
-  }>>([])
-  const [monthlyData, setMonthlyData] = useState<Array<{
-    month: string;
-    total: number;
-    count: number;
-  }>>([])
+  const [categoryData, setCategoryData] = useState<any[]>([])
+  const [monthlyData, setMonthlyData] = useState<any[]>([])
 
   // Load analytics data
   useEffect(() => {
@@ -238,8 +228,10 @@ export default function DashboardPage() {
                     {dashboardData.categoryTotals
                       .sort((a, b) => b.total - a.total)
                       .slice(0, 3)
-                      .map((category) => (
-                        <div key={category.id} className="flex items-center justify-between">
+                      .map((category, index) => {
+                        const categoryKey = category.id || category.name || `category-${index}`
+                        return (
+                        <div key={categoryKey} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center`} style={{ backgroundColor: category.color }}>
                             </div>
@@ -248,9 +240,10 @@ export default function DashboardPage() {
                               <p className="text-xs text-muted-foreground">{category.count || 0} expenses</p>
                             </div>
                           </div>
-                          <p className="font-semibold text-foreground">₹{category.total?.toLocaleString() || "0"}</p>
+                          <p className="font-semibold text-foreground">₹{(category.total || 0).toLocaleString()}</p>
                         </div>
-                      ))}
+                        )
+                      })}
                     {dashboardData.categoryTotals.length === 0 && (
                       <p className="text-sm text-muted-foreground text-center py-4">No expenses this month</p>
                     )}

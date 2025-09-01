@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useExpenses } from "@/hooks/use-expenses"
+import { useWallet } from "@/hooks/use-wallet"
 import { DEFAULT_CATEGORIES, type Expense } from "@/lib/types"
 import { Loader2 } from "lucide-react"
 
@@ -28,6 +30,7 @@ interface EditExpenseDialogProps {
 
 export function EditExpenseDialog({ expense, open, onOpenChange }: EditExpenseDialogProps) {
   const { updateExpense } = useExpenses()
+  const { wallet } = useWallet()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     amount: "",
@@ -35,6 +38,7 @@ export function EditExpenseDialog({ expense, open, onOpenChange }: EditExpenseDi
     category: "",
     location: "",
     description: "",
+    deductFromWallet: false,
   })
 
   useEffect(() => {
@@ -45,6 +49,7 @@ export function EditExpenseDialog({ expense, open, onOpenChange }: EditExpenseDi
         category: expense.category,
         location: expense.location || "",
         description: expense.description || "",
+        deductFromWallet: expense.deductFromWallet || false,
       })
     }
   }, [expense])
@@ -55,21 +60,29 @@ export function EditExpenseDialog({ expense, open, onOpenChange }: EditExpenseDi
 
     setLoading(true)
 
-    await updateExpense(expense.id, {
-      amount: Number.parseFloat(formData.amount),
-      date: new Date(formData.date),
-      category: formData.category,
-      location: formData.location || undefined,
-      description: formData.description || undefined,
-    })
+    try {
+      await updateExpense(expense.id, {
+        amount: Number.parseFloat(formData.amount),
+        date: new Date(formData.date + 'T00:00:00'), // Force local time to avoid timezone shifts
+        category: formData.category,
+        location: formData.location || undefined,
+        description: formData.description || undefined,
+        deductFromWallet: formData.deductFromWallet,
+      })
 
-    onOpenChange(false)
+      onOpenChange(false)
+    } catch (error: any) {
+      alert(error.message || "Failed to update expense")
+    }
 
     setLoading(false)
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ 
+      ...prev, 
+      [field]: field === "deductFromWallet" ? value === "true" : value 
+    }))
   }
 
   return (
@@ -152,6 +165,19 @@ export function EditExpenseDialog({ expense, open, onOpenChange }: EditExpenseDi
               onChange={(e) => handleInputChange("description", e.target.value)}
               rows={3}
             />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="deductFromWallet"
+              checked={formData.deductFromWallet}
+              onCheckedChange={(checked) => 
+                handleInputChange("deductFromWallet", checked ? "true" : "false")
+              }
+            />
+            <Label htmlFor="deductFromWallet" className="text-sm font-normal">
+              Deduct from wallet balance (₹{wallet?.balance?.toFixed(2) || "0.00"} available)
+            </Label>
           </div>
 
           <DialogFooter>

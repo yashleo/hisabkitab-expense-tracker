@@ -65,10 +65,7 @@ export function useCategories() {
     }
 
     const ensureDefaultCategories = async () => {
-        if (!user || !user.id) {
-            console.warn('Cannot create default categories: user not properly loaded')
-            return
-        }
+        if (!user) return
 
         try {
             // Check if default categories already exist
@@ -89,11 +86,10 @@ export function useCategories() {
             )
 
             if (missingDefaults.length > 0) {
-                console.log(`Creating ${missingDefaults.length} default categories for user ${user.id}`)
                 for (const defaultCategory of missingDefaults) {
                     await firestoreService.createCategory({
                         ...defaultCategory,
-                        userId: user.id // Use the current user's ID
+                        userId: undefined // Default categories don't have userId
                     })
                 }
             }

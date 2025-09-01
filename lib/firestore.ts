@@ -1,7 +1,7 @@
 "use client"
 
 import { getFirebaseInstances } from "./firebase"
-import { User, Expense, Category } from "./types"
+import { User, Expense, Category, Wallet } from "./types"
 
 // Firestore service for managing database operations
 export class FirestoreService {
@@ -131,12 +131,12 @@ export class FirestoreService {
     async getExpenses(userId: string, limit?: number): Promise<{ expenses: Expense[]; error: string | null }> {
         try {
             const db = await this.getDb()
-            const { collection, query, where, getDocs, limitToLast, orderBy } = await import("firebase/firestore")
+            const { collection, query, where, orderBy, getDocs, limitToLast } = await import("firebase/firestore")
 
-            // Simple query without composite index requirement
             let expenseQuery = query(
                 collection(db, "expenses"),
-                where("userId", "==", userId)
+                where("userId", "==", userId),
+                orderBy("date", "desc")
             )
 
             if (limit) {
@@ -155,9 +155,6 @@ export class FirestoreService {
                 createdAt: doc.data().createdAt?.toDate() || new Date(),
                 updatedAt: doc.data().updatedAt?.toDate() || new Date(),
             }))
-
-            // Sort on client side instead of using Firestore orderBy
-            expenses.sort((a, b) => b.date.getTime() - a.date.getTime())
 
             return { expenses, error: null }
         } catch (error: any) {
@@ -372,6 +369,208 @@ export class FirestoreService {
         } catch (error: any) {
             console.error("Error getting monthly expenses:", error)
             return { monthlyData: [], error: error.message }
+        }
+    }
+
+    // Wallet operations
+    async createWallet(walletData: Omit<Wallet, "id" | "createdAt" | "updatedAt">): Promise<{ wallet: Wallet | null; error: string | null }> {
+        try {
+            const db = await this.getDb()
+            const { collection, addDoc, serverTimestamp } = await import("firebase/firestore")
+
+            const newWallet = {
+                ...walletData,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            }
+
+            const docRef = await addDoc(collection(db, "wallets"), newWallet)
+
+            const wallet: Wallet = {
+                ...walletData,
+                id: docRef.id,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            }
+
+            return { wallet, error: null }
+        } catch (error: any) {
+            console.error("Error creating wallet:", error)
+            return { wallet: null, error: error.message }
+        }
+    }
+
+    async getWallet(userId: string): Promise<{ wallet: Wallet | null; error: string | null }> {
+        try {
+            const db = await this.getDb()
+            const { collection, query, where, getDocs } = await import("firebase/firestore")
+
+            const walletQuery = query(
+                collection(db, "wallets"),
+                where("userId", "==", userId)
+            )
+
+            const querySnapshot = await getDocs(walletQuery)
+            
+            if (querySnapshot.empty) {
+                return { wallet: null, error: "Wallet not found" }
+            }
+
+            const doc = querySnapshot.docs[0]
+            const wallet: Wallet = {
+                id: doc.id,
+                userId: doc.data().userId,
+                balance: doc.data().balance || 0,
+                createdAt: doc.data().createdAt?.toDate() || new Date(),
+                updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+            }
+
+            return { wallet, error: null }
+        } catch (error: any) {
+            console.error("Error fetching wallet:", error)
+            // Handle permission errors specifically
+            if (error.code === 'permission-denied') {
+                return { wallet: null, error: "Permission denied accessing wallet" }
+            }
+            return { wallet: null, error: error.message }
+        }
+    }
+
+    async updateWallet(walletId: string, updates: Partial<Omit<Wallet, "id" | "userId" | "createdAt">>): Promise<{ error: string | null }> {
+        try {
+            const db = await this.getDb()
+            const { doc, updateDoc, serverTimestamp } = await import("firebase/firestore")
+
+            await updateDoc(doc(db, "wallets", walletId), {
+                ...updates,
+                updatedAt: serverTimestamp(),
+            })
+
+            return { error: null }
+        } catch (error: any) {
+            console.error("Error updating wallet:", error)
+            return { error: error.message }
+        }
+    }
+
+    // Transaction methods for expense + wallet operations
+    async createExpenseWithWalletDeduction(
+        expenseData: Omit<Expense, "id" | "createdAt" | "updatedAt">,
+        walletId: string,
+        deductionAmount: number
+    ): Promise<{ expense: Expense | null; error: string | null }> {
+        try {
+            const db = await this.getDb()
+            const { collection, doc, runTransaction, serverTimestamp } = await import("firebase/firestore")
+
+            const result = await runTransaction(db, async (transaction) => {
+                // Get current wallet
+                const walletRef = doc(db, "wallets", walletId)
+                const walletDoc = await transaction.get(walletRef)
+                
+                if (!walletDoc.exists()) {
+                    throw new Error("Wallet not found")
+                }
+
+                const currentBalance = walletDoc.data().balance
+                if (currentBalance < deductionAmount) {
+                    throw new Error("Insufficient wallet balance")
+                }
+
+                // Create expense
+                const expenseRef = doc(collection(db, "expenses"))
+                const newExpense = {
+                    ...expenseData,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                }
+                transaction.set(expenseRef, newExpense)
+
+                // Update wallet balance
+                transaction.update(walletRef, {
+                    balance: currentBalance - deductionAmount,
+                    updatedAt: serverTimestamp(),
+                })
+
+                return {
+                    id: expenseRef.id,
+                    ...expenseData,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                }
+            })
+
+            return { expense: result, error: null }
+        } catch (error: any) {
+            console.error("Error creating expense with wallet deduction:", error)
+            return { expense: null, error: error.message }
+        }
+    }
+
+    async updateExpenseWithWalletAdjustment(
+        expenseId: string,
+        updates: Partial<Omit<Expense, "id" | "userId" | "createdAt">>,
+        walletId: string,
+        previousWalletDeduction: boolean,
+        previousAmount: number,
+        newWalletDeduction: boolean,
+        newAmount: number
+    ): Promise<{ error: string | null }> {
+        try {
+            const db = await this.getDb()
+            const { doc, runTransaction, serverTimestamp } = await import("firebase/firestore")
+
+            await runTransaction(db, async (transaction) => {
+                // Get current wallet
+                const walletRef = doc(db, "wallets", walletId)
+                const walletDoc = await transaction.get(walletRef)
+                
+                if (!walletDoc.exists()) {
+                    throw new Error("Wallet not found")
+                }
+
+                let currentBalance = walletDoc.data().balance
+
+                // Calculate balance adjustment
+                let balanceAdjustment = 0
+
+                // If previously deducted, add back the old amount
+                if (previousWalletDeduction) {
+                    balanceAdjustment += previousAmount
+                }
+
+                // If now deducting, subtract the new amount
+                if (newWalletDeduction) {
+                    balanceAdjustment -= newAmount
+                }
+
+                const newBalance = currentBalance + balanceAdjustment
+
+                // Check if sufficient funds for new deduction
+                if (newWalletDeduction && newBalance < 0) {
+                    throw new Error("Insufficient wallet balance")
+                }
+
+                // Update expense
+                const expenseRef = doc(db, "expenses", expenseId)
+                transaction.update(expenseRef, {
+                    ...updates,
+                    updatedAt: serverTimestamp(),
+                })
+
+                // Update wallet if there's a balance change
+                if (balanceAdjustment !== 0) {
+                    transaction.update(walletRef, {
+                        balance: newBalance,
+                        updatedAt: serverTimestamp(),
+                    })
+                }
+            })
+
+            return { error: null }
+        } catch (error: any) {
+            console.error("Error updating expense with wallet adjustment:", error)
+            return { error: error.message }
         }
     }
 }

@@ -1,18 +1,24 @@
 "use client"
 
-import { getFirebaseConfig } from './config'
-
 let firebaseApp: any = null
 let firebaseAuth: any = null
 let firebaseDb: any = null
 let googleProvider: any = null
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBwmAxxcDscY-BrzcdlDtgIOeKzEko-Z0Y",
+  authDomain: "hisabkitabforall.firebaseapp.com",
+  projectId: "hisabkitabforall",
+  storageBucket: "hisabkitabforall.appspot.com",
+  messagingSenderId: "364209768256",
+  appId: "1:364209768256:web:0a4fa1a43a0598dbe6dca5",
+}
 
 const initializeFirebase = async () => {
   if (typeof window === "undefined") return null
 
   if (!firebaseApp) {
     try {
-      const firebaseConfig = getFirebaseConfig()
       const { initializeApp, getApps } = await import("firebase/app")
       const { getAuth, GoogleAuthProvider } = await import("firebase/auth")
       const { getFirestore } = await import("firebase/firestore")
@@ -25,6 +31,11 @@ const initializeFirebase = async () => {
       googleProvider.setCustomParameters({
         prompt: "select_account",
       })
+
+      // For development: ensure localhost is handled properly
+      if (typeof window !== "undefined" && window.location.hostname === "localhost") {
+        console.log("Development mode: OAuth should work on localhost if properly configured in Firebase Console")
+      }
     } catch (error) {
       console.error("Firebase initialization error:", error)
       return null

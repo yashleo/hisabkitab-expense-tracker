@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useExpenses } from "@/hooks/use-expenses"
+import { useWallet } from "@/hooks/use-wallet"
 import { DEFAULT_CATEGORIES } from "@/lib/types"
 import { Loader2 } from "lucide-react"
 
@@ -28,6 +30,7 @@ interface AddExpenseDialogProps {
 
 export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpenseDialogProps) {
   const { addExpense } = useExpenses()
+  const { wallet } = useWallet()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     amount: "",
@@ -35,12 +38,19 @@ export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpense
     category: "",
     location: "",
     description: "",
+    deductFromWallet: false,
   })
 
   useEffect(() => {
     if (open) {
-      // Always set to current date when dialog opens, unless defaultDate is provided
-      const dateToUse = defaultDate || new Date()
+      // Always set to tomorrow's date when dialog opens, unless defaultDate is provided
+      let dateToUse: Date
+      if (defaultDate) {
+        dateToUse = defaultDate
+      } else {
+        dateToUse = new Date()
+        dateToUse.setDate(dateToUse.getDate() + 1) // Shift 1 day to the right (tomorrow)
+      }
       setFormData((prev) => ({
         ...prev,
         date: dateToUse.toISOString().split("T")[0],
@@ -52,32 +62,46 @@ export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpense
     e.preventDefault()
     if (!formData.amount || !formData.category) return
 
+    const amount = Number.parseFloat(formData.amount)
+
     setLoading(true)
 
-    const result = await addExpense({
-      amount: Number.parseFloat(formData.amount),
-      date: new Date(formData.date),
-      category: formData.category,
-      location: formData.location || undefined,
-      description: formData.description || undefined,
-    })
-
-    if (result) {
-      setFormData({
-        amount: "",
-        date: new Date().toISOString().split("T")[0],
-        category: "",
-        location: "",
-        description: "",
+    try {
+      const result = await addExpense({
+        amount,
+        date: new Date(formData.date + 'T00:00:00'), // Force local time to avoid timezone shifts
+        category: formData.category,
+        location: formData.location || undefined,
+        description: formData.description || undefined,
+        deductFromWallet: formData.deductFromWallet,
       })
-      onOpenChange(false)
+
+      if (result) {
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1) // Shift 1 day to the right (tomorrow)
+        
+        setFormData({
+          amount: "",
+          date: tomorrow.toISOString().split("T")[0],
+          category: "",
+          location: "",
+          description: "",
+          deductFromWallet: false,
+        })
+        onOpenChange(false)
+      }
+    } catch (error: any) {
+      alert(error.message || "Failed to add expense")
     }
 
     setLoading(false)
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ 
+      ...prev, 
+      [field]: field === "deductFromWallet" ? value === "true" : value 
+    }))
   }
 
   return (
@@ -164,6 +188,19 @@ export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpense
               onChange={(e) => handleInputChange("description", e.target.value)}
               rows={3}
             />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="deductFromWallet"
+              checked={formData.deductFromWallet}
+              onCheckedChange={(checked) => 
+                handleInputChange("deductFromWallet", checked ? "true" : "false")
+              }
+            />
+            <Label htmlFor="deductFromWallet" className="text-sm font-normal">
+              Deduct from wallet balance (₹{wallet?.balance?.toFixed(2) || "0.00"} available)
+            </Label>
           </div>
 
           <DialogFooter>

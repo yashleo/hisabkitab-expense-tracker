@@ -53,7 +53,7 @@ export function ExpenseCard({ expense, onEdit, viewMode }: ExpenseCardProps) {
               <div
                 className={`w-10 h-10 rounded-lg flex items-center justify-center ${category?.color || "bg-gray-500"}`}
               >
-                <span className="text-white text-lg font-semibold">{category?.name.charAt(0).toUpperCase() || "E"}</span>
+                <span className="text-white text-lg">{category?.icon || "📝"}</span>
               </div>
 
               <div className="flex-1">
@@ -134,7 +134,7 @@ export function ExpenseCard({ expense, onEdit, viewMode }: ExpenseCardProps) {
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${category?.color || "bg-gray-500"}`}>
-            <span className="text-white text-xl font-semibold">{category?.name.charAt(0).toUpperCase() || "E"}</span>
+            <span className="text-white text-xl">{category?.icon || "📝"}</span>
           </div>
 
           <DropdownMenu>

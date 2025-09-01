@@ -6,6 +6,7 @@ import { PieChart } from "lucide-react"
 interface CategoryData {
   id: string
   name: string
+  icon: string
   color: string
   total: number
   count: number
@@ -61,10 +62,11 @@ export function CategoryChart({ data, loading }: CategoryChartProps) {
           <div className="space-y-4">
             {data
               .sort((a, b) => b.total - a.total)
-              .map((category) => {
+              .map((category, index) => {
                 const percentage = total > 0 ? (category.total / total) * 100 : 0
+                const categoryKey = category.id || category.name || `category-${index}`
                 return (
-                  <div key={category.id} className="space-y-2">
+                  <div key={categoryKey} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center`} style={{ backgroundColor: category.color }}>
@@ -75,7 +77,7 @@ export function CategoryChart({ data, loading }: CategoryChartProps) {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-foreground">₹{category.total?.toLocaleString() || "0"}</p>
+                        <p className="font-semibold text-foreground">₹{(category.total || 0).toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">{percentage.toFixed(1)}%</p>
                       </div>
                     </div>

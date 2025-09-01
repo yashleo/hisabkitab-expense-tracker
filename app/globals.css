@@ -37,6 +37,41 @@
   --sidebar-ring: oklch(0.472 0.197 16.439 / 0.5); /* rgba(190, 18, 60, 0.5) */
 }
 
+.dark {
+  --background: #0d1117; /* GitHub dark background */
+  --foreground: #e6edf3; /* GitHub light text */
+  --card: #161b22; /* GitHub card background */
+  --card-foreground: #e6edf3;
+  --popover: #161b22;
+  --popover-foreground: #e6edf3;
+  --primary: #1db954; /* Spotify green */
+  --primary-foreground: #000000;
+  --secondary: #30363d; /* GitHub secondary */
+  --secondary-foreground: #e6edf3;
+  --muted: #21262d; /* GitHub muted background */
+  --muted-foreground: #8b949e; /* GitHub muted text */
+  --accent: #238636; /* GitHub green accent */
+  --accent-foreground: #ffffff;
+  --destructive: #f85149; /* GitHub red */
+  --destructive-foreground: #ffffff;
+  --border: #30363d; /* GitHub border */
+  --input: #21262d; /* GitHub input background */
+  --ring: #1db954; /* Spotify green for focus */
+  --chart-1: #1db954; /* Spotify green */
+  --chart-2: #ff6b35; /* Warm orange */
+  --chart-3: #4fc3f7; /* Light blue */
+  --chart-4: #ab47bc; /* Purple */
+  --chart-5: #f85149; /* GitHub red */
+  --sidebar: #0d1117;
+  --sidebar-foreground: #e6edf3;
+  --sidebar-primary: #1db954;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #238636;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #30363d;
+  --sidebar-ring: #1db954;
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

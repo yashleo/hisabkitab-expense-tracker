@@ -13,23 +13,26 @@ import { Plus, ChevronLeft, ChevronRight, Calendar } from "lucide-react"
 
 export default function ExpensesPage() {
   const { expenses, loading } = useExpenses()
-  // Initialize selectedDate to today at midnight to avoid time zone issues
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date()
-    return new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  })
+  const [selectedDate, setSelectedDate] = useState(new Date())
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [editingExpense, setEditingExpense] = useState<any>(null)
 
   const formatDate = (date: Date) => {
-    return date.toISOString().split("T")[0]
+    // Use local date components to avoid timezone issues
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   const isSameDay = (date1: Date, date2: Date) => {
-    return date1.getFullYear() === date2.getFullYear() &&
-           date1.getMonth() === date2.getMonth() &&
-           date1.getDate() === date2.getDate()
+    // Compare year, month, and day directly to avoid timezone issues
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    )
   }
 
   const getDaysInMonth = (date: Date) => {
@@ -57,7 +60,18 @@ export default function ExpensesPage() {
 
   const getExpensesForDate = (date: Date) => {
     return expenses.filter((expense) => {
-      const expenseDate = new Date(expense.date)
+      // Handle both Date objects and Firestore Timestamp objects
+      let expenseDate: Date
+      if (expense.date instanceof Date) {
+        expenseDate = expense.date
+      } else if (expense.date && typeof (expense.date as any).toDate === 'function') {
+        // Firestore Timestamp
+        expenseDate = (expense.date as any).toDate()
+      } else {
+        // String date
+        expenseDate = new Date(expense.date)
+      }
+      
       return isSameDay(expenseDate, date)
     })
   }
@@ -151,8 +165,8 @@ export default function ExpensesPage() {
 
                   return (
                     <button
-                      key={day.toISOString()}
-                      onClick={() => setSelectedDate(new Date(day.getFullYear(), day.getMonth(), day.getDate()))}
+                      key={day.getDate()}
+                      onClick={() => setSelectedDate(day)}
                       className={`
                         h-12 sm:h-16 p-1 rounded-lg border transition-all duration-200 flex flex-col items-center justify-center text-xs sm:text-sm
                         ${isSelected

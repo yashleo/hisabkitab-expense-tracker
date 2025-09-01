@@ -45,10 +45,33 @@ export function useExpenses() {
     if (!user) throw new Error("User not authenticated")
 
     try {
-      const { expense, error: createError } = await firestoreService.createExpense({
-        ...expenseData,
-        userId: user.id,
-      })
+      let expense: Expense | null = null
+      let createError: string | null = null
+
+      // If wallet deduction is requested, use transaction method
+      if (expenseData.deductFromWallet) {
+        // Get user's wallet first
+        const { wallet, error: walletError } = await firestoreService.getWallet(user.id)
+        if (walletError || !wallet) {
+          throw new Error("Wallet not found. Please create a wallet first.")
+        }
+
+        const result = await firestoreService.createExpenseWithWalletDeduction(
+          { ...expenseData, userId: user.id },
+          wallet.id,
+          expenseData.amount
+        )
+        expense = result.expense
+        createError = result.error
+      } else {
+        // Use regular expense creation
+        const result = await firestoreService.createExpense({
+          ...expenseData,
+          userId: user.id,
+        })
+        expense = result.expense
+        createError = result.error
+      }
       
       if (createError || !expense) {
         throw new Error(createError || "Failed to add expense")
@@ -69,10 +92,44 @@ export function useExpenses() {
     if (!user) throw new Error("User not authenticated")
 
     try {
-      const { error: updateError } = await firestoreService.updateExpense(id, expenseData)
-      
-      if (updateError) {
-        throw new Error(updateError)
+      // Find the current expense to check previous wallet deduction status
+      const currentExpense = expenses.find(exp => exp.id === id)
+      if (!currentExpense) {
+        throw new Error("Expense not found")
+      }
+
+      // Check if wallet adjustment is needed
+      const hasWalletChange = 
+        expenseData.deductFromWallet !== undefined || 
+        (expenseData.amount !== undefined && currentExpense.deductFromWallet)
+
+      if (hasWalletChange) {
+        // Get user's wallet
+        const { wallet, error: walletError } = await firestoreService.getWallet(user.id)
+        if (walletError || !wallet) {
+          throw new Error("Wallet not found. Please create a wallet first.")
+        }
+
+        const { error: updateError } = await firestoreService.updateExpenseWithWalletAdjustment(
+          id,
+          expenseData,
+          wallet.id,
+          currentExpense.deductFromWallet || false,
+          currentExpense.amount,
+          (expenseData.deductFromWallet ?? currentExpense.deductFromWallet) || false,
+          expenseData.amount ?? currentExpense.amount
+        )
+
+        if (updateError) {
+          throw new Error(updateError)
+        }
+      } else {
+        // Use regular update method
+        const { error: updateError } = await firestoreService.updateExpense(id, expenseData)
+        
+        if (updateError) {
+          throw new Error(updateError)
+        }
       }
 
       setExpenses(prev => prev.map(expense => 
