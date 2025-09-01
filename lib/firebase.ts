@@ -6,12 +6,43 @@ let firebaseDb: any = null
 let googleProvider: any = null
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBwmAxxcDscY-BrzcdlDtgIOeKzEko-Z0Y",
-  authDomain: "hisabkitabforall.firebaseapp.com",
-  projectId: "hisabkitabforall",
-  storageBucket: "hisabkitabforall.appspot.com",
-  messagingSenderId: "364209768256",
-  appId: "1:364209768256:web:0a4fa1a43a0598dbe6dca5",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyBwmAxxcDscY-BrzcdlDtgIOeKzEko-Z0Y",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "hisabkitabforall.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "hisabkitabforall",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "hisabkitabforall.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "364209768256",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:364209768256:web:0a4fa1a43a0598dbe6dca5",
+}
+
+// Validate that all required environment variables are present
+const validateFirebaseConfig = () => {
+  const requiredVars = [
+    'NEXT_PUBLIC_FIREBASE_API_KEY',
+    'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+    'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+    'NEXT_PUBLIC_FIREBASE_APP_ID'
+  ]
+  
+  
+  // Check that the final config has all required values
+  const configValues = [
+    firebaseConfig.apiKey,
+    firebaseConfig.authDomain,
+    firebaseConfig.projectId,
+    firebaseConfig.storageBucket,
+    firebaseConfig.messagingSenderId,
+    firebaseConfig.appId
+  ]
+  
+  const missingValues = configValues.filter(value => !value)
+  
+  if (missingValues.length > 0) {
+    throw new Error('Firebase configuration is incomplete. Missing values detected.')
+  }
+  
+  console.log('✅ Firebase configuration validated successfully')
 }
 
 const initializeFirebase = async () => {
@@ -19,6 +50,9 @@ const initializeFirebase = async () => {
 
   if (!firebaseApp) {
     try {
+      // Validate environment variables first
+      validateFirebaseConfig()
+      
       const { initializeApp, getApps } = await import("firebase/app")
       const { getAuth, GoogleAuthProvider } = await import("firebase/auth")
       const { getFirestore } = await import("firebase/firestore")

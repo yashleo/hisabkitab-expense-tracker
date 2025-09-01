@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
 import { useAuthContext } from "@/components/providers/auth-provider"
 import { useRouter } from "next/navigation"
@@ -115,22 +116,27 @@ export function AuthForm({ mode }: AuthFormProps) {
       </div>
 
       {/* Right Panel - Auth Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
+      <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-md">
+          {/* Theme Toggle - positioned at top right */}
+          <div className="flex justify-end mb-4">
+            <ThemeToggle />
+          </div>
+          
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
-            <div className="w-12 h-12 bg-rose-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <div className="w-6 h-6 bg-white rounded-sm"></div>
+            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
+              <div className="w-6 h-6 bg-primary-foreground rounded-sm"></div>
             </div>
-            <span className="text-xl font-semibold text-rose-700">HisabKitab</span>
+            <span className="text-xl font-semibold text-primary">HisabKitab</span>
           </div>
 
           {/* Form Header */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               {mode === "signup" ? "Create Account" : "Welcome Back!"}
             </h2>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {mode === "signup" ? "Start tracking your expenses today" : "Login to your account to continue"}
             </p>
           </div>
@@ -141,16 +147,16 @@ export function AuthForm({ mode }: AuthFormProps) {
             <form onSubmit={handleEmailAuth} className="space-y-4">
               {mode === "signup" && (
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-gray-700">Full Name</Label>
+                  <Label htmlFor="name" className="text-foreground">Full Name</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="name"
                       type="text"
                       placeholder="Enter your full name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="pl-10 h-12 border-gray-200 focus:border-rose-500 focus:ring-rose-500"
+                      className="pl-10 h-12"
                       required
                     />
                   </div>
@@ -158,32 +164,32 @@ export function AuthForm({ mode }: AuthFormProps) {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700">Email</Label>
+                <Label htmlFor="email" className="text-foreground">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12 border-gray-200 focus:border-rose-500 focus:ring-rose-500"
+                    className="pl-10 h-12"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-700">Password</Label>
+                <Label htmlFor="password" className="text-foreground">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 border-gray-200 focus:border-rose-500 focus:ring-rose-500"
+                    className="pl-10 pr-10 h-12"
                     required
                   />
                   <Button
@@ -194,9 +200,9 @@ export function AuthForm({ mode }: AuthFormProps) {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
+                      <Eye className="h-4 w-4 text-muted-foreground" />
                     )}
                   </Button>
                 </div>

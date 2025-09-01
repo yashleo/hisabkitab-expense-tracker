@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { ArrowRight, BarChart3, Calendar, PieChart, Shield, Smartphone, Users } from "lucide-react"
 
 export default function LandingPage() {
@@ -23,6 +24,7 @@ export default function LandingPage() {
               About
             </Link>
             <div className="flex items-center space-x-3">
+              <ThemeToggle />
               <Link href="/auth/signin">
                 <Button variant="ghost" size="sm">
                   Sign In
@@ -36,6 +38,11 @@ export default function LandingPage() {
               </Link>
             </div>
           </nav>
+          
+          {/* Mobile theme toggle */}
+          <div className="md:hidden">
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
