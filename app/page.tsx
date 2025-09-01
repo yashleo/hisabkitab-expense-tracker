@@ -38,7 +38,7 @@ export default function LandingPage() {
               </Link>
             </div>
           </nav>
-          
+
           {/* Mobile theme toggle */}
           <div className="md:hidden">
             <ThemeToggle />

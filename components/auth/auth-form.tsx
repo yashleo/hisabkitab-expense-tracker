@@ -88,15 +88,15 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Panel - Welcome Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-rose-600 to-pink-600 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative z-10 flex flex-col justify-center items-start p-12 text-white">
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Left Panel - Welcome Section (Desktop only) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-secondary relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10 dark:bg-black/20"></div>
+        <div className="relative z-10 flex flex-col justify-center items-start p-12 text-primary-foreground">
           {/* Logo */}
           <div className="mb-8">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4">
-              <div className="w-6 h-6 bg-white rounded-sm"></div>
+            <div className="w-12 h-12 bg-primary-foreground/20 rounded-lg flex items-center justify-center mb-4">
+              <div className="w-6 h-6 bg-primary-foreground rounded-sm"></div>
             </div>
             <span className="text-xl font-semibold">HisabKitab</span>
           </div>
@@ -104,14 +104,14 @@ export function AuthForm({ mode }: AuthFormProps) {
           {/* Welcome Text */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
-            <p className="text-rose-100 text-lg leading-relaxed">
+            <p className="text-primary-foreground/80 text-lg leading-relaxed">
               Track your expenses effortlessly and take control of your financial journey with our intuitive expense tracker.
             </p>
           </div>
 
           {/* Decorative Elements */}
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full transform translate-x-1/2 translate-y-1/2"></div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full transform translate-x-1/3 -translate-y-1/3"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary-foreground/5 rounded-full transform translate-x-1/2 translate-y-1/2"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary-foreground/5 rounded-full transform translate-x-1/3 -translate-y-1/3"></div>
         </div>
       </div>
 
@@ -119,18 +119,10 @@ export function AuthForm({ mode }: AuthFormProps) {
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-md">
           {/* Theme Toggle - positioned at top right */}
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end mb-6">
             <ThemeToggle />
           </div>
           
-          {/* Mobile Logo */}
-          <div className="lg:hidden mb-8 text-center">
-            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-              <div className="w-6 h-6 bg-primary-foreground rounded-sm"></div>
-            </div>
-            <span className="text-xl font-semibold text-primary">HisabKitab</span>
-          </div>
-
           {/* Form Header */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-foreground mb-2">
@@ -222,7 +214,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <Separator className="w-full" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-gray-50 px-2 text-gray-500">Or continue with</span>
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
               </div>
             </div>
 
@@ -231,7 +223,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               onClick={handleGoogleAuth}
               disabled={loading}
               variant="outline"
-              className="w-full h-12 text-base font-medium border-gray-200 hover:bg-gray-50"
+              className="w-full h-12 text-base font-medium"
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                 <path
@@ -254,18 +246,18 @@ export function AuthForm({ mode }: AuthFormProps) {
               Continue with Google
             </Button>
 
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-muted-foreground">
               {mode === "signup" ? (
                 <>
                   Already have an account?{" "}
-                  <a href="/auth/signin" className="text-rose-600 hover:underline font-medium">
+                  <a href="/auth/signin" className="text-primary hover:underline font-medium">
                     Sign in
                   </a>
                 </>
               ) : (
                 <>
                   Don't have an account?{" "}
-                  <a href="/auth/signup" className="text-rose-600 hover:underline font-medium">
+                  <a href="/auth/signup" className="text-primary hover:underline font-medium">
                     Sign up
                   </a>
                 </>
