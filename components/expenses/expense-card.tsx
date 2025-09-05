@@ -4,20 +4,11 @@ import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useExpenses } from "@/hooks/use-expenses"
+import { useWallet } from "@/hooks/use-wallet"
 import { DEFAULT_CATEGORIES, type Expense } from "@/lib/types"
 import { Edit, Trash2, MapPin, Calendar, MoreVertical } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 
 interface ExpenseCardProps {
   expense: Expense
@@ -25,9 +16,17 @@ interface ExpenseCardProps {
   onDelete?: () => void // Add callback for after deletion
   viewMode: "grid" | "list"
 }
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  AlertTriangle,
+  ArrowUpRight,
+  CreditCard, 
+  Wallet
+} from "lucide-react"
 
 export function ExpenseCard({ expense, onEdit, onDelete, viewMode }: ExpenseCardProps) {
   const { deleteExpense } = useExpenses()
+  const { refreshWallet } = useWallet()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -43,6 +42,11 @@ export function ExpenseCard({ expense, onEdit, onDelete, viewMode }: ExpenseCard
     try {
       await deleteExpense(expense.id)
       setShowDeleteDialog(false)
+      
+      // Refresh wallet if expense was deducted from wallet
+      if (expense.deductFromWallet) {
+        refreshWallet()
+      }
       
       // Call the optional callback if provided
       if (onDelete) {

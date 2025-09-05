@@ -207,6 +207,29 @@ export const signOut = async () => {
   }
 }
 
+export const updateUserProfile = async (updates: { name?: string }) => {
+  try {
+    const firebase = await initializeFirebase()
+    if (!firebase) return { error: "Firebase initialization failed" }
+
+    const { updateProfile } = await import("firebase/auth")
+    const currentUser = firebase.auth.currentUser
+    
+    if (!currentUser) {
+      return { error: "No user is currently signed in" }
+    }
+
+    await updateProfile(currentUser, { 
+      displayName: updates.name 
+    })
+
+    return { error: null }
+  } catch (error: any) {
+    console.error("Update profile error:", error)
+    return { error: error.message || "Failed to update profile" }
+  }
+}
+
 export const onAuthStateChange = async (callback: (user: any) => void) => {
   try {
     const firebase = await initializeFirebase()

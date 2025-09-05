@@ -23,12 +23,102 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [name, setName] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  
+  // Validation states
+  const [emailError, setEmailError] = useState("")
+  const [passwordError, setPasswordError] = useState("")
+  const [nameError, setNameError] = useState("")
 
   const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuthContext()
   const router = useRouter()
 
+  // Validation functions
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!email) {
+      return "Email is required"
+    }
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address"
+    }
+    return ""
+  }
+
+  const validatePassword = (password: string) => {
+    if (!password) {
+      return "Password is required"
+    }
+    if (password.length < 6) {
+      return "Password must be at least 6 characters long"
+    }
+    if (mode === "signup") {
+      if (!/(?=.*[a-z])/.test(password)) {
+        return "Password must contain at least one lowercase letter"
+      }
+      if (!/(?=.*[A-Z])/.test(password)) {
+        return "Password must contain at least one uppercase letter"
+      }
+      if (!/(?=.*\d)/.test(password)) {
+        return "Password must contain at least one number"
+      }
+    }
+    return ""
+  }
+
+  const validateName = (name: string) => {
+    if (mode === "signup") {
+      if (!name) {
+        return "Full name is required"
+      }
+      if (name.length < 2) {
+        return "Name must be at least 2 characters long"
+      }
+    }
+    return ""
+  }
+
+  // Handle input changes with validation
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setEmail(value)
+    if (emailError) {
+      setEmailError(validateEmail(value))
+    }
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setPassword(value)
+    if (passwordError) {
+      setPasswordError(validatePassword(value))
+    }
+  }
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setName(value)
+    if (nameError) {
+      setNameError(validateName(value))
+    }
+  }
+
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate all fields
+    const emailValidation = validateEmail(email)
+    const passwordValidation = validatePassword(password)
+    const nameValidation = validateName(name)
+    
+    setEmailError(emailValidation)
+    setPasswordError(passwordValidation)
+    setNameError(nameValidation)
+    
+    // If there are validation errors, don't submit
+    if (emailValidation || passwordValidation || nameValidation) {
+      return
+    }
+    
     setLoading(true)
 
     try {
@@ -147,11 +237,15 @@ export function AuthForm({ mode }: AuthFormProps) {
                       type="text"
                       placeholder="Enter your full name"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-10 h-12"
+                      onChange={handleNameChange}
+                      onBlur={() => setNameError(validateName(name))}
+                      className={`pl-10 h-12 ${nameError ? "border-red-500 focus:border-red-500" : ""}`}
                       required
                     />
                   </div>
+                  {nameError && (
+                    <p className="text-sm text-red-500 mt-1">{nameError}</p>
+                  )}
                 </div>
               )}
 
@@ -164,11 +258,15 @@ export function AuthForm({ mode }: AuthFormProps) {
                     type="email"
                     placeholder="Enter your email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12"
+                    onChange={handleEmailChange}
+                    onBlur={() => setEmailError(validateEmail(email))}
+                    className={`pl-10 h-12 ${emailError ? "border-red-500 focus:border-red-500" : ""}`}
                     required
                   />
                 </div>
+                {emailError && (
+                  <p className="text-sm text-red-500 mt-1">{emailError}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -180,8 +278,9 @@ export function AuthForm({ mode }: AuthFormProps) {
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12"
+                    onChange={handlePasswordChange}
+                    onBlur={() => setPasswordError(validatePassword(password))}
+                    className={`pl-10 pr-10 h-12 ${passwordError ? "border-red-500 focus:border-red-500" : ""}`}
                     required
                   />
                   <Button
@@ -198,12 +297,34 @@ export function AuthForm({ mode }: AuthFormProps) {
                     )}
                   </Button>
                 </div>
+                {passwordError && (
+                  <p className="text-sm text-red-500 mt-1">{passwordError}</p>
+                )}
+                {mode === "signup" && !passwordError && password && (
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>Password must contain:</p>
+                    <ul className="ml-4 space-y-1">
+                      <li className={password.length >= 6 ? "text-green-600" : ""}>
+                        • At least 6 characters
+                      </li>
+                      <li className={/(?=.*[a-z])/.test(password) ? "text-green-600" : ""}>
+                        • One lowercase letter
+                      </li>
+                      <li className={/(?=.*[A-Z])/.test(password) ? "text-green-600" : ""}>
+                        • One uppercase letter
+                      </li>
+                      <li className={/(?=.*\d)/.test(password) ? "text-green-600" : ""}>
+                        • One number
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
 
               <Button 
                 type="submit" 
                 className="w-full h-12 text-base font-medium bg-rose-600 hover:bg-rose-700 text-white"
-                disabled={loading}
+                disabled={loading || emailError !== "" || passwordError !== "" || nameError !== "" || !email || !password || (mode === "signup" && !name)}
               >
                 {loading ? "Please wait..." : mode === "signup" ? "Create Account" : "LOGIN"}
               </Button>

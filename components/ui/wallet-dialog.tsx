@@ -22,7 +22,7 @@ interface WalletDialogProps {
 }
 
 export function WalletDialog({ open, onOpenChange }: WalletDialogProps) {
-  const { wallet, loading, addMoney, updateWalletBalance } = useWallet()
+  const { wallet, loading, addMoney, updateWalletBalance, refreshWallet } = useWallet()
   const [amount, setAmount] = useState("")
   const [operation, setOperation] = useState<"add" | "set">("add")
   const [submitting, setSubmitting] = useState(false)
@@ -62,6 +62,12 @@ export function WalletDialog({ open, onOpenChange }: WalletDialogProps) {
             ? `₹${amount} added to wallet successfully!`
             : `Wallet balance updated to ₹${amount}!`,
         })
+        
+        // Force refresh wallet to ensure navbar updates
+        setTimeout(() => {
+          refreshWallet()
+        }, 100)
+        
         onOpenChange(false)
       } else {
         toast({

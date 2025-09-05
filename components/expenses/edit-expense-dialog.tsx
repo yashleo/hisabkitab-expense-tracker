@@ -29,8 +29,8 @@ interface EditExpenseDialogProps {
 }
 
 export function EditExpenseDialog({ expense, open, onOpenChange }: EditExpenseDialogProps) {
+  const { wallet, refreshWallet } = useWallet()
   const { updateExpense } = useExpenses()
-  const { wallet } = useWallet()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     amount: "",
@@ -69,6 +69,11 @@ export function EditExpenseDialog({ expense, open, onOpenChange }: EditExpenseDi
         description: formData.description || undefined,
         deductFromWallet: formData.deductFromWallet,
       })
+
+      // Refresh wallet if wallet was affected
+      if (formData.deductFromWallet || expense.deductFromWallet) {
+        refreshWallet()
+      }
 
       onOpenChange(false)
     } catch (error: any) {

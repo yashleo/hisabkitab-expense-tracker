@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { useAuthContext } from "@/components/providers/auth-provider"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { WalletButton } from "@/components/ui/wallet-button"
-import { BarChart3, LogOut, User } from "lucide-react"
+import { ProfileDialog } from "@/components/ui/profile-dialog"
+import { BarChart3, LogOut, User, Edit2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +52,14 @@ export function AuthHeader() {
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
                 <DropdownMenuSeparator />
+                <ProfileDialog 
+                  trigger={
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <Edit2 className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </DropdownMenuItem>
+                  }
+                />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard">Dashboard</Link>
                 </DropdownMenuItem>

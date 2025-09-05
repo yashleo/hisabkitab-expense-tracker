@@ -17,8 +17,7 @@ const DEFAULT_CATEGORIES: Omit<Category, 'id' | 'createdAt' | 'updatedAt' | 'use
     { name: "Travel", color: "#06b6d4", isDefault: true },
     { name: "Personal Care", color: "#0ea5e9", isDefault: true },
     { name: "Fitness", color: "#3b82f6", isDefault: true },
-    { name: "Gifts", color: "#6366f1", isDefault: true },
-    { name: "Other", color: "#6b7280", isDefault: true }
+    { name: "Gifts", color: "#6366f1", isDefault: true }
 ]
 
 export function useCategories() {
@@ -44,10 +43,7 @@ export function useCategories() {
         setError(null)
 
         try {
-            // First, ensure default categories exist
-            await ensureDefaultCategories()
-
-            // Then load all categories (default + custom)
+            // Load user's custom categories only (don't auto-create defaults)
             const { categories: allCategories, error: fetchError } = await firestoreService.getUserCategories(user.id)
             
             if (fetchError) {

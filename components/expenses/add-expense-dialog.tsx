@@ -29,8 +29,8 @@ interface AddExpenseDialogProps {
 }
 
 export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpenseDialogProps) {
+  const { wallet, refreshWallet } = useWallet()
   const { addExpense } = useExpenses()
-  const { wallet } = useWallet()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     amount: "",
@@ -77,6 +77,11 @@ export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpense
       })
 
       if (result) {
+        // Refresh wallet if it was affected
+        if (formData.deductFromWallet) {
+          refreshWallet()
+        }
+        
         const tomorrow = new Date()
         tomorrow.setDate(tomorrow.getDate() + 1) // Shift 1 day to the right (tomorrow)
         

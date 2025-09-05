@@ -6,8 +6,8 @@ import { AuthHeader } from "@/components/auth/auth-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useExpenses } from "@/hooks/use-expenses"
-import { useCategories } from "@/hooks/use-categories"
 import { useAuthContext } from "@/components/providers/auth-provider"
+import { DEFAULT_CATEGORIES } from "@/lib/types"
 import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 import { RecentExpenses } from "@/components/dashboard/recent-expenses"
 import { CategoryChart } from "@/components/dashboard/category-chart"
@@ -26,7 +26,6 @@ export default function DashboardPage() {
     getTotalExpenses,
     getRecentExpenses
   } = useExpenses()
-  const { categories } = useCategories()
 
   const [categoryData, setCategoryData] = useState<any[]>([])
   const [monthlyData, setMonthlyData] = useState<any[]>([])
@@ -42,7 +41,20 @@ export default function DashboardPage() {
           getMonthlyExpenses()
         ])
         
-        setCategoryData(categoryStats)
+        // Transform category data to match CategoryChart component expectations
+        const transformedCategoryData = categoryStats.map((cat: any) => {
+          const defaultCategory = DEFAULT_CATEGORIES.find(dc => dc.name === cat.category)
+          return {
+            id: cat.category,
+            name: cat.category,
+            icon: "📊", // Default icon since DEFAULT_CATEGORIES doesn't have icons
+            color: defaultCategory?.color || "#6b7280", // Fallback color
+            total: cat.amount,
+            count: cat.count
+          }
+        })
+        
+        setCategoryData(transformedCategoryData)
         setMonthlyData(monthlyStats)
       } catch (error) {
         console.error("Error loading analytics:", error)

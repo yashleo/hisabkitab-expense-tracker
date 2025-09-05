@@ -45,6 +45,7 @@ export interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<{ user: any; error: string | null }>
   signUpWithEmail: (email: string, password: string, name: string) => Promise<{ user: any; error: string | null }>
   signOut: () => Promise<{ error: string | null }>
+  updateUserProfile: (updates: { name?: string }) => Promise<{ error: string | null }>
 }
 
 export const DEFAULT_CATEGORIES = [
@@ -59,7 +60,6 @@ export const DEFAULT_CATEGORIES = [
   { name: "Personal Care", color: "#ec4899" },
   { name: "Groceries", color: "#84cc16" },
   { name: "Fitness", color: "#f97316" },
-  { name: "Other", color: "#6b7280" },
 ] as const
 
 export type ExpenseCategory = (typeof DEFAULT_CATEGORIES)[number]["name"]

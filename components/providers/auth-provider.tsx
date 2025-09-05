@@ -3,7 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User, AuthContextType } from "@/lib/types"
-import { signInWithGoogle, signInWithEmail, signUpWithEmail, signOut, onAuthStateChange } from "@/lib/firebase"
+import { signInWithGoogle, signInWithEmail, signUpWithEmail, signOut, updateUserProfile, onAuthStateChange } from "@/lib/firebase"
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -75,6 +75,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const updateUserProfileAuth = async (updates: { name?: string }) => {
+    try {
+      const result = await updateUserProfile(updates)
+      if (result.error) {
+        throw new Error(result.error)
+      }
+      
+      // Update local user state
+      if (user && updates.name) {
+        setUser(prev => prev ? { ...prev, name: updates.name!, updatedAt: new Date() } : null)
+      }
+      
+      return { error: null }
+    } catch (error: any) {
+      return { error: error.message || "Failed to update profile" }
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -82,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithEmail: signInWithEmailAuth,
     signUpWithEmail: signUpWithEmailAuth,
     signOut: signOutUser,
+    updateUserProfile: updateUserProfileAuth,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { useAuthContext } from "@/components/providers/auth-provider"
+import { useWalletRefresh } from "@/hooks/use-wallet-refresh"
 import type { Expense } from "@/lib/types"
 import { firestoreService } from "@/lib/firestore"
 
 export function useExpenses() {
   const { user } = useAuthContext()
+  const { triggerRefresh: triggerWalletRefresh } = useWalletRefresh()
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -80,6 +82,11 @@ export function useExpenses() {
       // Optimistically update the state first
       setExpenses(prev => [expense, ...prev])
       
+      // If wallet was affected, refresh it
+      if (expenseData.deductFromWallet) {
+        triggerWalletRefresh()
+      }
+      
       // Also refresh the expenses from the server to ensure consistency
       setTimeout(() => {
         loadExpenses()
@@ -144,6 +151,11 @@ export function useExpenses() {
           ? { ...expense, ...expenseData, updatedAt: new Date() }
           : expense
       ))
+
+      // If wallet was affected, refresh it
+      if (hasWalletChange) {
+        triggerWalletRefresh()
+      }
     } catch (err: any) {
       console.error("Error updating expense:", err)
       throw new Error(err.message || "Failed to update expense")
@@ -193,6 +205,11 @@ export function useExpenses() {
 
       // Update local state immediately
       setExpenses(prev => prev.filter(expense => expense.id !== id))
+      
+      // If wallet was affected, refresh it
+      if (expenseToDelete.deductFromWallet) {
+        triggerWalletRefresh()
+      }
       
       // Also refresh from server to ensure consistency
       setTimeout(() => {
