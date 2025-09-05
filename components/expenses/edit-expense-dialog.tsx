@@ -43,9 +43,15 @@ export function EditExpenseDialog({ expense, open, onOpenChange }: EditExpenseDi
 
   useEffect(() => {
     if (expense) {
+      // Format date as YYYY-MM-DD without timezone conversion
+      const year = expense.date.getFullYear()
+      const month = String(expense.date.getMonth() + 1).padStart(2, '0')
+      const day = String(expense.date.getDate()).padStart(2, '0')
+      const formattedDate = `${year}-${month}-${day}`
+      
       setFormData({
         amount: expense.amount.toString(),
-        date: expense.date.toISOString().split("T")[0],
+        date: formattedDate,
         category: expense.category,
         location: expense.location || "",
         description: expense.description || "",

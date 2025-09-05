@@ -29,8 +29,8 @@ interface AddExpenseDialogProps {
 }
 
 export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpenseDialogProps) {
-  const { wallet, refreshWallet } = useWallet()
   const { addExpense } = useExpenses()
+  const { wallet } = useWallet()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     amount: "",
@@ -51,9 +51,16 @@ export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpense
         dateToUse = new Date()
         dateToUse.setDate(dateToUse.getDate() + 1) // Shift 1 day to the right (tomorrow)
       }
+      
+      // Format date as YYYY-MM-DD without timezone conversion
+      const year = dateToUse.getFullYear()
+      const month = String(dateToUse.getMonth() + 1).padStart(2, '0')
+      const day = String(dateToUse.getDate()).padStart(2, '0')
+      const formattedDate = `${year}-${month}-${day}`
+      
       setFormData((prev) => ({
         ...prev,
-        date: dateToUse.toISOString().split("T")[0],
+        date: formattedDate,
       }))
     }
   }, [open, defaultDate])
@@ -77,11 +84,6 @@ export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpense
       })
 
       if (result) {
-        // Refresh wallet if it was affected
-        if (formData.deductFromWallet) {
-          refreshWallet()
-        }
-        
         const tomorrow = new Date()
         tomorrow.setDate(tomorrow.getDate() + 1) // Shift 1 day to the right (tomorrow)
         
@@ -147,8 +149,14 @@ export function AddExpenseDialog({ open, onOpenChange, defaultDate }: AddExpense
                 type="date"
                 value={formData.date}
                 onChange={(e) => handleInputChange("date", e.target.value)}
+                placeholder={defaultDate ? defaultDate.toLocaleDateString() : "Select date"}
                 required
               />
+              {defaultDate && (
+                <p className="text-xs text-muted-foreground">
+                  Default: {defaultDate.toLocaleDateString()}
+                </p>
+              )}
             </div>
           </div>
 
